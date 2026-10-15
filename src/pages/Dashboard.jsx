@@ -1,3 +1,11 @@
+import { useEffect, useState } from "react";
+import { loadTrial001Right } from "../services/imuDataService.js";
+import {
+  processSensorRows,
+  processEventDetectionData,
+} from "../utils/imuProcessor";
+
+
 import {
   Activity,
   Bluetooth,
@@ -28,7 +36,53 @@ import StrideChart from "../components/StrideChart";
 import FootTrajectory from "../components/FootTrajectory";
 
 function Dashboard() {
-  return (
+  
+
+  const [trialData, setTrialData] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    loadTrial001Right()
+      .then(setTrialData)
+      .catch((err) => setError(err.message));
+  }, []);
+
+  if (error) {
+    return <p>Failed to load trial: {error}</p>;
+  }
+
+  if (!trialData) {
+    return <p>Loading trial data...</p>;
+  }
+
+  const sensorData = processSensorRows(trialData.sensorRows);
+
+const eventData = processEventDetectionData(
+  trialData.sensorRows,
+  trialData.eventRows
+);
+console.table(
+  eventData
+    .filter(
+      (point) =>
+        point.heelStrike !== null ||
+        point.toeOff !== null
+    )
+    .map((point) => ({
+      time: point.time,
+      heelStrike: point.heelStrike,
+      toeOff: point.toeOff,
+    }))
+);
+
+  // Add the console.log statements here
+  console.log("Sensor rows:", trialData.sensorRows.length);
+  console.log("First raw row:", trialData.sensorRows[0]);
+  console.log("First processed row:", sensorData[0]);
+  console.log("Events:", trialData.eventRows.length);
+  console.log("Temporal rows:", trialData.temporalRows.length);
+
+ return (
     <div className="app-shell">
       <Sidebar />
 
@@ -75,9 +129,9 @@ function Dashboard() {
           </section>
 
           <section className="analysis-top-grid">
-            <PrimaryChart data={mockSensorData} />
-            <EventDetectionChart data={mockEventDetectionData} />
-          </section>
+  <PrimaryChart data={sensorData} />
+  <EventDetectionChart data={eventData} />
+</section>
 
           <section className="metrics-analysis">
             <div className="gait-metrics-grid">
@@ -155,5 +209,8 @@ function Dashboard() {
     </div>
   );
 }
+
+  
+
 
 export default Dashboard;
