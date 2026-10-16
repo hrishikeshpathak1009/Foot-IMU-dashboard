@@ -29,5 +29,10 @@
     "id": "subject-06",
     "name": "Subject 06",
     "dataPath": "subject-06"
+  },
+  {
+    "id": "subject-07",
+    "name": "Subject 07",
+    "dataPath": "subject-07"
   }
 ]
