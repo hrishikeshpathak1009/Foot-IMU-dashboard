@@ -99,3 +99,122 @@ export function processEventDetectionData(sensorRows, eventRows) {
 
   return points;
 }
+
+function isValidCycle(row) {
+  const value = row.valid;
+
+  return (
+    value === true ||
+    value === 1 ||
+    String(value).toLowerCase() === "true"
+  );
+}
+
+function numericValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function average(values) {
+  const validValues = values.filter((value) => value !== null);
+
+  if (!validValues.length) return null;
+
+  return validValues.reduce((sum, value) => sum + value, 0)
+    / validValues.length;
+}
+
+function standardDeviation(values) {
+  const validValues = values.filter((value) => value !== null);
+
+  if (validValues.length < 2) return null;
+
+  const avg = average(validValues);
+
+  return Math.sqrt(
+    validValues.reduce((sum, value) => sum + (value - avg) ** 2, 0)
+      / validValues.length
+  );
+}
+
+function round(value, digits = 2) {
+  return value === null ? null : Number(value.toFixed(digits));
+}
+
+export function processGaitMetrics(temporalRows, eventRows = []) {
+  const rows = temporalRows || [];
+
+  // Exclude invalid and non-cycle rows from numerical summaries.
+  const validRows = rows.filter(isValidCycle);
+
+  const getValues = (field) =>
+    validRows.map((row) => numericValue(row[field]))
+      .filter((value) => value !== null);
+
+  const strideTimes = getValues("stride_time_s");
+  const cadences = getValues("cadence_spm");
+  const lengths = getValues("stride_length_m");
+  const heights = getValues("stride_height_m");
+
+  const heelStrikes = eventRows.filter(
+    (row) => numericValue(row.heel_strike_time) !== null
+  ).length;
+
+  const toeOffs = eventRows.filter(
+    (row) => numericValue(row.toe_off_time) !== null
+  ).length;
+
+  return {
+    heelStrikes,
+    toeOffs,
+    strideCycles: rows.filter(
+      (row) => numericValue(row.stride_time_s) !== null
+    ).length,
+    validCycles: validRows.length,
+
+    strideTime: round(average(strideTimes)),
+    strideTimeStd: round(standardDeviation(strideTimes)),
+
+    cadence: round(average(cadences)),
+    cadenceStd: round(standardDeviation(cadences)),
+
+    strideLength: round(average(lengths)),
+    strideLengthStd: round(standardDeviation(lengths)),
+
+    // Keep height in metres internally.
+    strideHeight: round(average(heights), 3),
+    strideHeightStd: round(standardDeviation(heights), 3),
+  };
+}
+
+
+export function processStrideRows(temporalRows) {
+  return (temporalRows || [])
+    .map((row, index) => {
+      const heightM = numericValue(row.stride_height_m);
+      const lengthM = numericValue(row.stride_length_m);
+
+      // Keep rejected cycles visible when their measurements exist.
+      return {
+        stride: index + 1,
+
+        // Chart axis expects centimetres for height.
+        height: heightM === null ? null : heightM * 100,
+
+        // Chart axis expects metres for length.
+        length: lengthM,
+
+        // Don't fabricate a robust estimate.
+        robustHeight: null,
+        robustLength: null,
+
+        valid: isValidCycle(row),
+        reason: row.invalid_reason || "",
+      };
+    })
+    .filter((row) => row.height !== null || row.length !== null);
+}

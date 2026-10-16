@@ -9,6 +9,8 @@ import {
 import {
   processSensorRows,
   processEventDetectionData,
+  processGaitMetrics,
+  processStrideRows,
 } from "../utils/imuProcessor.js";
 
 import {
@@ -131,6 +133,23 @@ function Dashboard() {
         activeTrial.eventRows
       )
     : [];
+    const gaitMetrics = activeTrial
+  ? processGaitMetrics(
+      activeTrial.temporalRows,
+      activeTrial.eventRows
+    )
+  : null;
+
+const strideData = activeTrial
+  ? processStrideRows(activeTrial.temporalRows)
+  : [];
+  console.log("Selected subject:", activeTrial?.subject);
+console.log("Temporal rows:", activeTrial?.temporalRows);
+console.log(
+  "Temporal columns:",
+  Object.keys(activeTrial?.temporalRows?.[0] ?? {})
+);
+console.log("Processed stride data:", strideData);
 
   if (error) {
     return <p role="alert">Failed to load subject data: {error}</p>;
@@ -221,75 +240,98 @@ function Dashboard() {
 
           <section className="metrics-analysis">
             <div className="gait-metrics-grid">
-              <GaitMetricCard
-                label="Heel Strikes"
-                value={mockGaitMetrics.heelStrikes}
-                detail="Avg interval: 1.21 s"
-                tone="red"
-              />
-              <GaitMetricCard
-                label="Toe Offs"
-                value={mockGaitMetrics.toeOffs}
-                detail="Avg interval: 1.20 s"
-                tone="green"
-              />
-              <GaitMetricCard
-                label="Stride Cycles"
-                value={mockGaitMetrics.strideCycles}
-                detail={`Valid cycles: ${mockGaitMetrics.validCycles} (91%)`}
-                tone="orange"
-              />
-              <GaitMetricCard
-                label="Stride Time"
-                value={`${mockGaitMetrics.strideTime} s`}
-                detail={`± ${mockGaitMetrics.strideTimeStd} s`}
-                tone="purple"
-              />
-              <GaitMetricCard
-                label="Cadence"
-                value={`${mockGaitMetrics.cadence} steps/min`}
-                detail={`± ${mockGaitMetrics.cadenceStd} steps/min`}
-                tone="blue"
-              />
-              <GaitMetricCard
-                label="Stride Length"
-                value={`${mockGaitMetrics.strideLength} m`}
-                detail={`± ${mockGaitMetrics.strideLengthStd} m`}
-                tone="green"
-              />
-              <GaitMetricCard
-                label="Stride Height"
-                value={`${mockGaitMetrics.strideHeight} cm`}
-                detail={`± ${mockGaitMetrics.strideHeightStd} cm`}
-                tone="orange"
-              />
+             
+<GaitMetricCard
+  label="Heel Strikes"
+  value={gaitMetrics.heelStrikes}
+  detail="Detected events"
+  tone="red"
+/>
+
+<GaitMetricCard
+  label="Toe Offs"
+  value={gaitMetrics.toeOffs}
+  detail="Detected events"
+  tone="green"
+/>
+
+<GaitMetricCard
+  label="Stride Cycles"
+  value={gaitMetrics.strideCycles}
+  detail={`Valid cycles: ${gaitMetrics.validCycles}`}
+  tone="orange"
+/>
+
+<GaitMetricCard
+  label="Stride Time"
+  value={
+    gaitMetrics.strideTime === null
+      ? "—"
+      : `${gaitMetrics.strideTime} s`
+  }
+  detail={
+    gaitMetrics.strideTimeStd === null
+      ? "Standard deviation unavailable"
+      : `± ${gaitMetrics.strideTimeStd} s`
+  }
+  tone="purple"
+/>
+
+<GaitMetricCard
+  label="Cadence"
+  value={
+    gaitMetrics.cadence === null
+      ? "—"
+      : `${gaitMetrics.cadence} steps/min`
+  }
+  detail={
+    gaitMetrics.cadenceStd === null
+      ? "Standard deviation unavailable"
+      : `± ${gaitMetrics.cadenceStd} steps/min`
+  }
+  tone="blue"
+/>
+
+<GaitMetricCard
+  label="Stride Length"
+  value={
+    gaitMetrics.strideLength === null
+      ? "—"
+      : `${gaitMetrics.strideLength} m`
+  }
+  detail={
+    gaitMetrics.strideLengthStd === null
+      ? "Standard deviation unavailable"
+      : `± ${gaitMetrics.strideLengthStd} m`
+  }
+  tone="green"
+/>
+
+<GaitMetricCard
+  label="Stride Height"
+  value={
+    gaitMetrics.strideHeight === null
+      ? "—"
+      : `${(gaitMetrics.strideHeight * 100).toFixed(1)} cm`
+  }
+  detail={
+    gaitMetrics.strideHeightStd === null
+      ? "Standard deviation unavailable"
+      : `± ${(gaitMetrics.strideHeightStd * 100).toFixed(1)} cm`
+  }
+  tone="orange"
+/>
+
             </div>
           </section>
 
           <section className="lower-analysis-grid">
-            <StrideChart data={mockStrideData} type="height" />
-            <StrideChart data={mockStrideData} type="length" />
+            <StrideChart data={strideData} type="height" />
+<StrideChart data={strideData} type="length" />
             <FootTrajectory data={mockTrajectory} />
           </section>
 
-          <section className="legacy-summary">
-            <div>
-              <span>SESSION</span>
-              <strong>{mockSession.duration}</strong>
-            </div>
-            <div>
-              <span>STEPS</span>
-              <strong>{mockSession.steps}</strong>
-            </div>
-            <div>
-              <span>ACTIVITY</span>
-              <strong>{mockSession.activity}</strong>
-            </div>
-            <div>
-              <span>DATA RATE</span>
-              <strong>{mockSession.dataRate}</strong>
-            </div>
-          </section>
+         
         </main>
       </div>
     </div>
