@@ -1,0 +1,18 @@
+
+[
+  {
+    "id": "subject-01",
+    "name": "Subject 01",
+    "dataPath": "subject-01"
+  },
+  {
+    "id": "subject-02",
+    "name": "Subject 02",
+    "dataPath": "subject-02"
+  },
+  {
+    "id": "subject-03",
+    "name": "Subject 03",
+    "dataPath": "subject-03"
+  }
+]

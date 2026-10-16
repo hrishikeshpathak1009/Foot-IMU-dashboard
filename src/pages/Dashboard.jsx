@@ -1,10 +1,15 @@
+
 import { useEffect, useState } from "react";
-import { loadTrial001Right } from "../services/imuDataService.js";
+
+import {
+  loadSubjects,
+  loadSubjectTrial,
+} from "../services/imuDataService.js";
+
 import {
   processSensorRows,
   processEventDetectionData,
-} from "../utils/imuProcessor";
-
+} from "../utils/imuProcessor.js";
 
 import {
   Activity,
@@ -17,11 +22,9 @@ import {
 } from "lucide-react";
 
 import {
-  mockEventDetectionData,
   mockGaitMetrics,
-  mockSensorData,
-  mockSession,
   mockStrideData,
+  mockSession,
   mockTrajectory,
 } from "../data/mockData";
 
@@ -35,59 +38,142 @@ import GaitMetricCard from "../components/GaitMetricCard";
 import StrideChart from "../components/StrideChart";
 import FootTrajectory from "../components/FootTrajectory";
 
+
+
 function Dashboard() {
-  
-
-  const [trialData, setTrialData] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [trials, setTrials] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [subjectsLoaded, setSubjectsLoaded] = useState(false);
 
+  // Load the available subject list once.
   useEffect(() => {
-    loadTrial001Right()
-      .then(setTrialData)
-      .catch((err) => setError(err.message));
+    let cancelled = false;
+
+    loadSubjects()
+      .then((list) => {
+        if (cancelled) return;
+
+        setSubjects(list);
+        setSelectedIds(list.length ? [list[0].id] : []);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setSubjectsLoaded(true);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  // Load the data belonging to the selected subjects.
+  useEffect(() => {
+    if (!subjectsLoaded) return;
+
+    if (selectedIds.length === 0) {
+      setTrials([]);
+      setLoading(false);
+      setError("");
+      return;
+    }
+
+    let cancelled = false;
+
+    const selectedSubjects = subjects.filter((subject) =>
+      selectedIds.includes(subject.id)
+    );
+
+    setLoading(true);
+    setError("");
+
+    Promise.all(selectedSubjects.map(loadSubjectTrial))
+      .then((results) => {
+        if (!cancelled) setTrials(results);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setTrials([]);
+          setError(err.message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [subjects, selectedIds, subjectsLoaded]);
+
+  function toggleSubject(id) {
+  setSelectedIds([id]);
+}
+
+  // The current chart components accept one dataset at a time.
+  // Use the first selected subject until chart comparison is implemented.
+  const activeTrial = trials[0] ?? null;
+
+  const sensorData = activeTrial
+    ? processSensorRows(activeTrial.sensorRows)
+    : [];
+
+  const eventData = activeTrial
+    ? processEventDetectionData(
+        activeTrial.sensorRows,
+        activeTrial.eventRows
+      )
+    : [];
+
   if (error) {
-    return <p>Failed to load trial: {error}</p>;
+    return <p role="alert">Failed to load subject data: {error}</p>;
   }
 
-  if (!trialData) {
-    return <p>Loading trial data...</p>;
+  if (loading) {
+    return <p>Loading participant data...</p>;
   }
 
-  const sensorData = processSensorRows(trialData.sensorRows);
+  if (selectedIds.length === 0) {
+    return (
+      <div className="app-shell">
+        <Sidebar />
+        <div className="main-shell">
+          <Header
+            subjects={subjects}
+            selectedIds={selectedIds}
+            onToggleSubject={toggleSubject}
+          />
+          <main className="dashboard-content">
+            <p>Select at least one participant from the header dropdown.</p>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
-const eventData = processEventDetectionData(
-  trialData.sensorRows,
-  trialData.eventRows
-);
-console.table(
-  eventData
-    .filter(
-      (point) =>
-        point.heelStrike !== null ||
-        point.toeOff !== null
-    )
-    .map((point) => ({
-      time: point.time,
-      heelStrike: point.heelStrike,
-      toeOff: point.toeOff,
-    }))
-);
+  if (!activeTrial) {
+    return <p>No trial data is available for the selected participant.</p>;
+  }
 
-  // Add the console.log statements here
-  console.log("Sensor rows:", trialData.sensorRows.length);
-  console.log("First raw row:", trialData.sensorRows[0]);
-  console.log("First processed row:", sensorData[0]);
-  console.log("Events:", trialData.eventRows.length);
-  console.log("Temporal rows:", trialData.temporalRows.length);
+  return (
 
- return (
+  
     <div className="app-shell">
       <Sidebar />
 
       <div className="main-shell">
-        <Header />
+        <Header
+  subjects={subjects}
+  selectedIds={selectedIds}
+  onToggleSubject={toggleSubject}
+/>
 
         <main className="dashboard-content">
           <section className="status-grid">

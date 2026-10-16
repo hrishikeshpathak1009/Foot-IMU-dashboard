@@ -1,23 +1,23 @@
 
 import Papa from "papaparse";
 
-const BASE = `${import.meta.env.BASE_URL}data/trial-001-right/`;
+const DATA_ROOT = `${import.meta.env.BASE_URL}data/`;
 
-async function loadJSON(filename) {
-  const response = await fetch(`${BASE}${filename}`);
+async function loadJSON(url) {
+  const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`Could not load ${filename}`);
+    throw new Error(`Could not load ${url}: ${response.status}`);
   }
 
   return response.json();
 }
 
-async function loadCSV(filename) {
-  const response = await fetch(`${BASE}${filename}`);
+async function loadCSV(url) {
+  const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`Could not load ${filename}`);
+    throw new Error(`Could not load ${url}: ${response.status}`);
   }
 
   const csv = await response.text();
@@ -26,34 +26,39 @@ async function loadCSV(filename) {
     header: true,
     skipEmptyLines: true,
     transformHeader: (header) => header.trim(),
+    dynamicTyping: true,
   });
 
-  if (result.errors.length > 0) {
+  if (result.errors.length) {
     throw new Error(
-      `CSV parsing failed: ${filename}: ${result.errors[0].message}`
+      `CSV parsing failed: ${url}: ${result.errors[0].message}`
     );
   }
 
   return result.data;
 }
 
-export async function loadTrial001Right() {
-  const [
-    sensorRows,
-    eventRows,
-    temporalRows,
-    subject,
-  ] = await Promise.all([
-    loadCSV("trial_001_right.csv"),
-    loadCSV("trial_001_right_events.csv"),
-    loadCSV("trial_001_right_temporal.csv"),
-    loadJSON("subject_info.json"),
-  ]);
+export async function loadSubjects() {
+  return loadJSON(`${DATA_ROOT}subjects.json`);
+}
+
+export async function loadSubjectTrial(subject) {
+  // subject.dataPath comes from your local subjects.json manifest.
+  const base = `${DATA_ROOT}${subject.dataPath}/`;
+
+  const [sensorRows, eventRows, temporalRows, subjectInfo] =
+    await Promise.all([
+      loadCSV(`${base}trial_001_right.csv`),
+      loadCSV(`${base}trial_001_right_events.csv`),
+      loadCSV(`${base}trial_001_right_temporal.csv`),
+      loadJSON(`${base}subject_info.json`),
+    ]);
 
   return {
+    subject,
     sensorRows,
     eventRows,
     temporalRows,
-    subject,
+    subjectInfo,
   };
 }

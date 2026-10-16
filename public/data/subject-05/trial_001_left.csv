@@ -1,0 +1,1 @@
+timestamp,packet_time,packet_index,device_key,side,segment,qw,qx,qy,qz,acc_x,acc_y,acc_z,gyr_x,gyr_y,filtered_gyr_y,gyr_z,calibration_phase,hs_thr,to_thr,to_prev_min,to_prev_max
