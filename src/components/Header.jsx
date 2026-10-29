@@ -132,7 +132,7 @@ function Header({
           type="button"
           className="top-icon-button"
           aria-label="Settings"
-          onClick={() => onToggleSubject(subject.id)}
+        
         >
           <Settings size={18} />
         </button>

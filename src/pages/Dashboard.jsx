@@ -225,14 +225,40 @@ console.log("Processed stride data:", strideData);
               tone="green"
             />
           </section>
+<section className="actions-grid">
+  <ActionCard
+    icon={Settings2}
+    label="Start Calibration"
+    description="5s standing + 20s walking"
+    tone="green"
+  />
 
-          <section className="actions-grid">
-            <ActionCard icon={Settings2} label="Start Calibration" description="5s standing + 20s walking" tone="green" />
-            <ActionCard icon={Play} label="Start Recording" description="Record 25s trial" tone="blue" />
-            <ActionCard icon={Activity} label="Analyze Trial" description="Process gait parameters" tone="purple" />
-            <ActionCard icon={FolderOpen} label="View Results" description="Open trial history" tone="white" />
-          </section>
+  <ActionCard
+    icon={Play}
+    label="Start Recording"
+    description="Record 25s trial"
+    tone="blue"
+  />
 
+  <ActionCard
+    icon={Activity}
+    label="AI Analysis"
+    description="Perform your Analysis using AI"
+    tone="purple"
+    onClick={() => window.open(
+      "https://foot-imu-analysis-ihzfwmear-manans-projects-4c50ea69.vercel.app/",
+      "_blank",
+      "noopener,noreferrer"
+    )}
+  />
+
+  <ActionCard
+    icon={FolderOpen}
+    label="View Results"
+    description="Open trial history"
+    tone="white"
+  />
+</section>
           <section className="analysis-top-grid">
   <PrimaryChart data={sensorData} />
   <EventDetectionChart data={eventData} />
