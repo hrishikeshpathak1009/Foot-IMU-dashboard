@@ -1,320 +1,261 @@
-# Foot IMU Dashboard
+# Foot-IMU Gait Analysis Dashboard
 
-An interactive web-based dashboard for visualization and monitoring of foot-mounted Inertial Measurement Unit (IMU) data.
+<p align="center">
+  <strong>An Interactive Platform for Foot-Mounted IMU Sensor Visualization and Gait Analysis</strong>
+  <br />
+  <br />
+  <a href="https://foot-imu-dashboard.vercel.app/">🚀 Live Demo</a>
+</p>
+
+---
 
 ## Overview
 
-The **Foot IMU Dashboard** is being developed as the frontend interface for a foot-mounted IMU sensor system. The objective is to provide a clear and interactive visualization of sensor measurements, foot orientation, gait phase, gait events, and session-level parameters.
+The **Foot-IMU Gait Analysis Dashboard** is a web-based application designed to visualize, process, and analyze data collected from foot-mounted Inertial Measurement Unit (IMU) sensors.
 
-The project is currently in the **frontend prototype and visualization development stage**. Simulated sensor data is being used to develop and validate the dashboard before integration with the actual IMU hardware, communication layer, and backend processing system.
+IMU sensors capture movement-related information such as acceleration and angular velocity. Analyzing these signals can help identify important characteristics of human walking patterns, including gait events and temporal gait parameters.
 
-The intended system architecture is:
+This project provides an interactive interface that transforms raw sensor readings into meaningful visual representations, making gait-related data easier to explore and interpret.
 
-```text
-Foot IMU
-   ↓
-Microcontroller
-   ↓
-Communication Layer
-   ↓
-Backend / Data Processing
-   ↓
-Interactive Dashboard
-```
+**Live Application:** [https://foot-imu-dashboard.vercel.app/](https://foot-imu-dashboard.vercel.app/)
 
-The dashboard is designed so that the underlying data source can later be replaced with a real-time sensor stream without requiring major changes to the visualization layer.
+## Key Features
 
-## Current Development Status
+### 1. Interactive Dashboard
+- Centralized interface for exploring gait-related sensor data.
+- Organized visualization of sensor signals and gait parameters.
+- Responsive layout for a better user experience.
+- Dedicated sections for data visualization and analysis.
 
-The current version implements the major frontend components required for the dashboard:
+### 2. IMU Sensor Data Processing
+- Processes raw sensor readings.
+- Converts timestamps into relative time values.
+- Calculates acceleration magnitude from individual acceleration components.
+- Structures sensor data for visualization and further analysis.
 
-- Primary sensor time-series visualization
-- Accelerometer visualization
-- Gyroscope visualization
-- Magnetometer visualization
-- Quaternion orientation display
-- Gait phase visualization
-- Gait event indicators
-- Session-level metrics
-- Connection-status interface
-- Responsive dashboard layout
+### 3. Gait Event Detection
+The application supports the visualization of important gait events:
 
-At the present stage, the visualization components are functional, while the sensor values and gait-related parameters are simulated.
+- **Heel Strike (HS):** The point at which the heel makes initial contact with the ground.
+- **Toe Off (TO):** The point at which the toe leaves the ground during the walking cycle.
 
-## Features
+These events help identify different phases of the gait cycle.
 
-### 1. Primary Sensor Visualization
+### 4. Gait Parameter Visualization
+The dashboard presents gait-related parameters to help understand walking patterns and movement characteristics.
 
-The dashboard contains a primary time-series graph for monitoring the main sensor parameter.
+### 5. Data Visualization
+- Time-series representation of sensor signals.
+- Visualization of acceleration patterns.
+- Gait event markers on sensor timelines.
+- Interactive exploration of processed data.
 
-Currently, the graph displays **acceleration magnitude**, calculated from the three accelerometer components:
-
-```text
-Acceleration Magnitude = √(Ax² + Ay² + Az²)
-```
-
-The graph provides the main continuous visualization area of the dashboard.
-
-### 2. Sensor Data Visualization
-
-A dedicated sensor visualization section allows switching between:
-
-- **ACC** – Accelerometer
-- **GYRO** – Gyroscope
-- **MAG** – Magnetometer
-
-For each sensor, the X, Y and Z components are displayed as separate time-series curves.
-
-This structure allows the same visualization component to handle all three IMU sensor groups.
-
-### 3. Orientation Information
-
-The dashboard contains an orientation panel displaying four quaternion components:
-
-```text
-q1
-q2
-q3
-q4
-```
-
-The current values are predefined for prototype development. Actual orientation estimation will be incorporated during the backend/data-processing stage.
-
-### 4. Gait Phase Visualization
-
-A separate graph represents the cyclic progression of the gait phase.
-
-The current prototype uses simulated cyclic data to demonstrate the required visualization. Actual gait-phase estimation from IMU measurements will be implemented as part of the data-processing pipeline.
-
-### 5. Gait Event Indicators
-
-The dashboard includes a discrete-event monitoring section for gait events such as:
-
-- Heel Strike
-- Foot Flat
-- Toe Off
-
-The current event is highlighted using a color-coded indicator, while recently detected events are displayed in a history section.
-
-At the current stage, these events are simulated to demonstrate the intended interface behaviour.
-
-### 6. Session Metrics
-
-The dashboard provides a summary section containing parameters such as:
-
-- Step count
-- Cadence
-- Activity
-- Session duration
-- Data rate
-
-These values are currently prototype values and will eventually be calculated from the incoming sensor data.
+### 6. Export and AI-Assisted Analysis
+The dashboard interface includes facilities for presenting analysis results and exporting reports, helping users interpret and retain gait analysis information.
 
 ## Technology Stack
 
-### Frontend
+| Technology | Application |
+|---|---|
+| React.js | Component-based frontend development |
+| Vite | Development server and build tooling |
+| JavaScript | Application logic and sensor data processing |
+| HTML5 | Application structure |
+| CSS3 | Styling and responsive interface |
+| Vitest | Unit testing |
+| Vercel | Frontend deployment |
 
-- **React.js** – Component-based user interface
-- **Vite** – Frontend development and build tool
-- **Recharts** – Sensor and gait data visualization
-- **Lucide React** – Interface icons
-- **CSS** – Dashboard layout, styling and responsive design
+## Application Architecture
 
-React provides the component-based structure of the interface, while Vite is used for development and production builds.
-
-### Planned Backend and Data Processing
-
-The project specification defines the intended backend architecture using:
-
-- Python
-- FastAPI
-- NumPy
-- Pandas
-- WebSockets
-
-These components are planned for sensor communication, data processing and real-time data transmission.
-
-## Project Structure
-
-The current frontend follows a modular structure:
+The application follows a modular frontend architecture that separates the user interface from sensor-data processing logic.
 
 ```text
-Foot-IMU-dashboard/
+Foot-IMU-Dashboard/
+│
+├── public/
+│   └── Static assets
 │
 ├── src/
 │   ├── components/
-│   │   ├── Header.jsx
-│   │   ├── PrimaryChart.jsx
-│   │   ├── SensorChart.jsx
-│   │   ├── OrientationCard.jsx
-│   │   ├── GaitPhaseChart.jsx
-│   │   ├── EventCard.jsx
-│   │   └── MetricsBar.jsx
-│   │
-│   ├── data/
-│   │   └── mockData.js
+│   │   └── Reusable UI components
 │   │
 │   ├── pages/
-│   │   └── Dashboard.jsx
+│   │   └── Dashboard pages
+│   │
+│   ├── utils/
+│   │   ├── imuProcessor.js
+│   │   └── imuProcessor.test.js
+│   │
+│   ├── assets/
+│   │   └── Images and other assets
 │   │
 │   ├── App.jsx
-│   ├── App.css
-│   └── index.css
+│   └── main.jsx
 │
-├── public/
+├── index.html
 ├── package.json
 ├── vite.config.js
 └── README.md
 ```
 
-The component structure separates the dashboard interface into individual functional units. This allows individual sections to be developed or modified independently.
+*Note: The directory structure above is illustrative. Adjust it to match the actual repository.*
 
-## Data Handling
+## Understanding the Data Processing Pipeline
 
-During the current development phase, a dedicated mock-data module provides simulated sensor and session information.
+The dashboard uses sensor-processing utilities to transform raw IMU readings into structured data.
 
-The simulated data contains:
+### Step 1: Raw Sensor Input
 
-```text
-Timestamp
-Accelerometer X, Y, Z
-Gyroscope X, Y, Z
-Magnetometer X, Y, Z
-Acceleration Magnitude
-Gait Phase
-Quaternion Values
-Gait Events
-Session Metrics
+The application receives sensor readings containing timestamp and movement-related measurements.
+
+Typical accelerometer measurements include:
+
+- Acceleration along the X-axis.
+- Acceleration along the Y-axis.
+- Acceleration along the Z-axis.
+
+### Step 2: Timestamp Processing
+
+Raw timestamps are converted into relative time values, allowing sensor measurements to be represented on a common timeline.
+
+### Step 3: Acceleration Magnitude
+
+The overall acceleration magnitude is calculated using:
+
+\[
+A = \sqrt{a_x^2+a_y^2+a_z^2}
+\]
+
+Where:
+
+- \(a_x\) represents X-axis acceleration.
+- \(a_y\) represents Y-axis acceleration.
+- \(a_z\) represents Z-axis acceleration.
+
+This provides a single value representing the magnitude of acceleration across all three axes.
+
+### Step 4: Gait Event Processing
+
+The processed sensor data is used to represent gait events such as Heel Strike and Toe Off.
+
+These events can be plotted against the sensor timeline to understand the progression of walking cycles.
+
+### Step 5: Visualization
+
+The processed information is presented through interactive charts, event markers, and gait parameter displays.
+
+## Testing
+
+The project uses **Vitest** for unit testing.
+
+The sensor-processing utilities are tested to ensure that raw sensor data is handled correctly.
+
+Current test coverage includes:
+
+| Module | Test Cases |
+|---|---|
+| `processSensorRows` | Empty sensor input handling |
+| `processSensorRows` | Timestamp conversion and acceleration magnitude calculation |
+| `processEventDetectionData` | Empty sensor data handling |
+| `processEventDetectionData` | Heel Strike and Toe Off event processing |
+
+### Running Tests
+
+```bash
+npm install
+npm test
 ```
 
-The mock data is used only for frontend development and visualization testing. It does not represent measurements obtained from the physical IMU.
+To run tests in watch mode, if supported by the configured scripts:
 
-## Current System Pipeline
-
-The current implementation can be represented as:
-
-```text
-Mock Sensor Data
-       ↓
-React Dashboard
-       ↓
-Visualization Components
-       ↓
-User Interface
+```bash
+npx vitest
 ```
 
-The intended final pipeline will be:
+## Installation and Local Development
 
-```text
-Foot IMU Sensor
-       ↓
-Microcontroller
-       ↓
-Bluetooth / Wi-Fi
-       ↓
-Backend
-       ↓
-Data Processing
-       ↓
-WebSocket / API
-       ↓
-React Dashboard
-       ↓
-Real-Time Visualization
+### Prerequisites
+
+- Node.js
+- npm
+- Git
+
+### Clone the Repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
 ```
 
-## Development Approach
+### Navigate to the Project
 
-The project is being developed incrementally.
+```bash
+cd <PROJECT_DIRECTORY>
+```
 
-### Phase 1 – Frontend Prototype
+### Install Dependencies
 
-Completed:
+```bash
+npm install
+```
 
-- Dashboard layout
-- Component architecture
-- Sensor graphs
-- Sensor selection
-- Orientation display
-- Gait phase display
-- Gait event interface
-- Session metrics
-- Responsive interface
-- Prototype deployment
+### Start the Development Server
 
-### Phase 2 – Data Integration
+```bash
+npm run dev
+```
 
-Planned:
+Vite will provide a local development URL, usually:
 
-- Integration of actual IMU datasets
-- Data preprocessing
-- Standardized sensor-data format
-- Backend API integration
-- Real-time data transfer
-
-### Phase 3 – Hardware Integration
-
-Planned:
-
-- Microcontroller communication
-- Bluetooth/Wi-Fi communication
-- Live IMU data acquisition
-- Connection monitoring
-- Real-time dashboard updates
-
-### Phase 4 – Gait Processing
-
-Planned:
-
-- Gait-event detection
-- Gait-phase estimation
-- Step detection
-- Cadence calculation
-- Orientation estimation
-- Session-level analysis
-
-## Future Scope
-
-The project can be extended with:
-
-- Left and right foot comparison
-- Additional gait parameters
-- Historical session storage
-- Session analysis and reports
-- Advanced gait-pattern classification
-- Real-time hardware integration
-- Additional visualization methods
-- Rehabilitation and gait-assessment applications after appropriate validation
+```text
+http://localhost:5173
+```
 
 ## Deployment
 
-The current frontend prototype is deployed and can be accessed at:
+The application is deployed using **Vercel**.
 
-**[Foot IMU Dashboard](https://hrishikeshpathak1009.github.io/Foot-IMU-dashboard/)**
+Access the live application:
 
-The application is currently deployed as a frontend prototype using simulated data.
+<p align="center">
+  <a href="https://foot-imu-dashboard.vercel.app/">
+    <strong>🌐 Foot-IMU Dashboard — Live Application</strong>
+  </a>
+</p>
 
-## Project Status
+## Future Scope
 
-| Component | Status |
-|---|---|
-| Frontend architecture | Completed |
-| Dashboard UI | Completed |
-| Primary sensor graph | Completed |
-| ACC/GYRO/MAG visualization | Completed |
-| Sensor switching | Completed |
-| Quaternion interface | Prototype |
-| Gait phase interface | Prototype |
-| Gait event interface | Prototype |
-| Session metrics | Prototype |
-| Real-time sensor input | Planned |
-| Backend integration | Planned |
-| Bluetooth/Wi-Fi communication | Planned |
-| Gait processing | Planned |
-| Hardware integration | Planned |
+Potential improvements and extensions include:
 
-## Project Objective
+- Advanced gait event detection algorithms.
+- More comprehensive temporal and spatial gait parameter calculations.
+- Support for multiple IMU sensor configurations.
+- Real-time sensor data acquisition.
+- Comparative gait analysis across multiple recording sessions.
+- Enhanced AI-assisted interpretation of gait patterns.
+- Exportable reports with detailed visualizations.
+- Improved accessibility and mobile responsiveness.
 
-The overall objective is to develop a modular software interface capable of receiving foot-IMU measurements, presenting real-time sensor information, and providing meaningful gait-related visualizations and session analysis.
+## Learning Outcomes
 
-The current frontend establishes the visualization foundation required for integration with the remaining hardware, communication, and data-processing components.
+Working on this project involves exploring several important engineering concepts:
+
+- Processing and interpreting time-series sensor data.
+- Understanding IMU measurements and human gait characteristics.
+- Developing interactive dashboards using React.
+- Designing reusable and modular frontend components.
+- Writing and executing unit tests for data-processing utilities.
+- Deploying web applications using Vercel.
+
+## Acknowledgements
+
+This project explores the application of wearable inertial sensors and web technologies in human movement analysis.
+
+---
+
+<p align="center">
+  <strong>Foot-IMU Gait Analysis Dashboard</strong>
+  <br />
+  Built with curiosity, engineering, and a focus on understanding human movement.
+  <br /><br />
+  <a href="https://foot-imu-dashboard.vercel.app/">View Live Project</a>
+</p>
