@@ -239,13 +239,11 @@ button {
   padding: 12px 14px 18px;
 }
 
-
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 9px;
 }
-
 
 .status-card {
   background: var(--surface);
@@ -493,7 +491,7 @@ button {
 }
 
 .metrics-analysis {
-  margin: 10px 0;
+  margin-top: 9px;
 }
 
 .gait-metrics-grid {
@@ -688,8 +686,7 @@ button {
   }
 
   .analysis-top-grid {
-  margin-top: 10px;
-  grid-template-columns: 1fr;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -902,4 +899,227 @@ button {
 
 .subject-empty {
   padding: 8px;
+}
+/* ===== DASHBOARD OVERVIEW ===== */
+
+.dashboard-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 9px;
+  align-items: stretch;
+  margin-bottom: 10px;
+}
+
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+/* Status cards */
+.dashboard-main .status-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+/* Action cards */
+.dashboard-main .actions-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0;
+}
+
+/* Seven gait parameters in one row */
+.dashboard-main .metrics-analysis {
+  margin: 0;
+}
+
+.dashboard-main .gait-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.dashboard-main .gait-metric-card {
+  min-width: 0;
+  overflow: hidden;
+  padding: 7px 5px;
+  gap: 5px;
+}
+
+.dashboard-main .metric-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+
+.dashboard-main .metric-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.dashboard-main .gait-metric-card > div:last-child {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-main .gait-metric-card span,
+.dashboard-main .gait-metric-card strong,
+.dashboard-main .gait-metric-card small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== SUBJECT PROFILE ===== */
+
+.profile-sidebar {
+  display: flex;
+  min-width: 0;
+}
+
+.compact-profile {
+  width: 100%;
+  height: 100%;
+  padding: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.compact-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--blue);
+}
+
+.compact-profile-header h3 {
+  margin: 0;
+  font-size: 11px;
+  color: var(--navy);
+}
+
+.compact-profile-header span {
+  display: block;
+  margin-top: 2px;
+  font-size: 7px;
+  color: var(--muted);
+}
+
+.compact-profile-header svg {
+  width: 15px;
+  height: 15px;
+}
+
+.compact-subject-name {
+  padding: 7px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* Height, weight and BMI */
+.compact-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.compact-profile-stats > div {
+  min-width: 0;
+  padding: 6px 4px;
+  background: var(--page);
+  border-radius: 5px;
+}
+
+.compact-profile-stats span {
+  display: block;
+  font-size: 7px;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.compact-profile-stats strong {
+  font-size: 10px;
+  color: var(--navy);
+  white-space: nowrap;
+}
+
+.compact-profile-stats small {
+  font-size: 7px;
+}
+
+/* Horizontal segment lengths */
+.compact-segments {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+}
+
+.compact-segments > span {
+  display: block;
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.compact-segments > div {
+  display: inline-flex;
+  flex-direction: column;
+  width: 32%;
+  gap: 3px;
+  padding: 3px 0;
+  border: 0;
+  font-size: 8px;
+}
+
+.compact-segments label {
+  color: var(--muted);
+}
+
+.compact-segments strong {
+  font-size: 9px;
+  color: var(--navy);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 1100px) {
+  .dashboard-overview {
+    grid-template-columns: minmax(0, 1fr) 190px;
+  }
+
+  .dashboard-main .gait-metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .dashboard-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .compact-profile {
+    height: auto;
+  }
+
+  .dashboard-main .gait-metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  .dashboard-main .status-grid,
+  .dashboard-main .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-main .gait-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

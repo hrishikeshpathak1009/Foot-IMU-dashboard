@@ -38,21 +38,33 @@ async function loadCSV(url) {
   return result.data;
 }
 
+// Load all available subjects.
 export async function loadSubjects() {
   return loadJSON(`${DATA_ROOT}subjects.json`);
 }
 
-export async function loadSubjectTrial(subject) {
-  // subject.dataPath comes from your local subjects.json manifest.
+// Load individual subject information.
+export async function loadSubjectInfo(subject) {
   const base = `${DATA_ROOT}${subject.dataPath}/`;
 
-  const [sensorRows, eventRows, temporalRows, subjectInfo] =
-    await Promise.all([
-      loadCSV(`${base}trial_001_right.csv`),
-      loadCSV(`${base}trial_001_right_events.csv`),
-      loadCSV(`${base}trial_001_right_temporal.csv`),
-      loadJSON(`${base}subject_info.json`),
-    ]);
+  return loadJSON(`${base}subject_info.json`);
+}
+
+// Load trial and subject information together.
+export async function loadSubjectTrial(subject) {
+  const base = `${DATA_ROOT}${subject.dataPath}/`;
+
+  const [
+    sensorRows,
+    eventRows,
+    temporalRows,
+    subjectInfo,
+  ] = await Promise.all([
+    loadCSV(`${base}trial_001_right.csv`),
+    loadCSV(`${base}trial_001_right_events.csv`),
+    loadCSV(`${base}trial_001_right_temporal.csv`),
+    loadSubjectInfo(subject),
+  ]);
 
   return {
     subject,

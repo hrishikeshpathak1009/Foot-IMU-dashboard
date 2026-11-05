@@ -1,5 +1,8 @@
-import { useEffect, useState } from "react";
 
+import { useEffect, useState } from "react";
+import { FileText } from "lucide-react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   loadSubjects,
   loadSubjectTrial,
@@ -23,7 +26,6 @@ import {
 
 import { mockTrajectory } from "../data/mockData";
 
-import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import StatusCard from "../components/StatusCard";
 import ActionCard from "../components/ActionCard";
@@ -36,12 +38,14 @@ import FootTrajectory from "../components/FootTrajectory";
 function Dashboard() {
   const [subjects, setSubjects] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [lastSubjectId, setLastSubjectId] = useState(null);
+
   const [trials, setTrials] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [subjectsLoaded, setSubjectsLoaded] = useState(false);
 
-  // Load the available subject list once.
+  // 1. Load available subjects once.
   useEffect(() => {
     let cancelled = false;
 
@@ -67,7 +71,7 @@ function Dashboard() {
     };
   }, []);
 
-  // Load data for the selected subject.
+  // 2. Load trial data for selected subject.
   useEffect(() => {
     if (!subjectsLoaded) return;
 
@@ -89,7 +93,9 @@ function Dashboard() {
 
     Promise.all(selectedSubjects.map(loadSubjectTrial))
       .then((results) => {
-        if (!cancelled) setTrials(results);
+        if (!cancelled) {
+          setTrials(results);
+        }
       })
       .catch((err) => {
         if (!cancelled) {
@@ -106,13 +112,30 @@ function Dashboard() {
     };
   }, [subjects, selectedIds, subjectsLoaded]);
 
+  // 3. Handle subject selection.
+  // Remember the previously selected subject.
   function toggleSubject(id) {
+    if (id === selectedIds[0]) return;
+
+    setLastSubjectId(selectedIds[0] ?? null);
     setSelectedIds([id]);
   }
 
-  // The charts currently display one selected subject at a time.
+  // 4. Get current and previous subjects.
+  const selectedSubject = subjects.find(
+    (subject) => subject.id === selectedIds[0]
+  );
+
+  const lastSubject = subjects.find(
+    (subject) => subject.id === lastSubjectId
+  );
+
+  // 5. Get active trial and subject information.
   const activeTrial = trials[0] ?? null;
 
+  const subjectInfo = activeTrial?.subjectInfo ?? null;
+
+  // 6. Process sensor and gait data.
   const sensorData = activeTrial
     ? processSensorRows(activeTrial.sensorRows)
     : [];
@@ -135,41 +158,140 @@ function Dashboard() {
     ? processStrideRows(activeTrial.temporalRows)
     : [];
 
-  if (error) {
-    return <p role="alert">Failed to load subject data: {error}</p>;
-  }
+  // 7. Calculate BMI.
+  const bmi =
+    subjectInfo?.height_cm > 0 &&
+    subjectInfo?.weight_kg > 0
+      ? (
+          subjectInfo.weight_kg /
+          Math.pow(subjectInfo.height_cm / 100, 2)
+        ).toFixed(2)
+      : null;
 
+      const exportReport = () => {
+  const doc = new jsPDF();
+
+  // Report heading
+  doc.setFontSize(20);
+  doc.setTextColor(16, 36, 63);
+  doc.text("Foot-IMU Gait Analysis Report", 14, 20);
+
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+
+  // Subject information
+  doc.setFontSize(14);
+  doc.setTextColor(16, 36, 63);
+  doc.text("Subject Information", 14, 42);
+
+  autoTable(doc, {
+    startY: 47,
+    theme: "grid",
+    head: [["Parameter", "Value"]],
+    body: [
+      ["Subject", subjectInfo?.subject_name || selectedSubject?.name || selectedIds[0]],
+      ["Height", `${subjectInfo?.height_cm ?? "—"} cm`],
+      ["Weight", `${subjectInfo?.weight_kg ?? "—"} kg`],
+      ["BMI", bmi ?? "—"],
+      ["Thigh Length", `${subjectInfo?.segment_length_cm?.thigh ?? "—"} cm`],
+      ["Shank Length", `${subjectInfo?.segment_length_cm?.shank ?? "—"} cm`],
+      ["Foot Length", `${subjectInfo?.segment_length_cm?.foot ?? "—"} cm`],
+    ],
+  });
+
+  // Gait parameters
+  doc.setFontSize(14);
+  doc.setTextColor(16, 36, 63);
+  doc.text("Gait Analysis Parameters", 14, doc.lastAutoTable.finalY + 15);
+
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 20,
+    theme: "grid",
+    head: [["Metric", "Result", "Description"]],
+    body: [
+      ["Heel Strikes", gaitMetrics.heelStrikes, "Detected contacts"],
+      ["Toe Offs", gaitMetrics.toeOffs, "Detected events"],
+      ["Stride Cycles", gaitMetrics.strideCycles, "Total cycles"],
+      ["Valid Cycles", gaitMetrics.validCycles, "Valid stride cycles"],
+      ["Stride Time", `${gaitMetrics.strideTime} s`, "Average stride time"],
+      ["Stride Time Std", `${gaitMetrics.strideTimeStd} s`, "Standard deviation"],
+      ["Cadence", `${gaitMetrics.cadence} steps/min`, "Steps per minute"],
+      ["Stride Length", `${gaitMetrics.strideLength} m`, "Average length"],
+      ["Stride Height", `${gaitMetrics.strideHeight} m`, "Average height"],
+    ],
+  });
+
+  // Save PDF
+  const filename = `Gait_Report_${selectedIds[0] || "Subject"}.pdf`;
+  doc.save(filename);
+};
+
+  // 8. Loading state.
   if (loading) {
     return <p>Loading participant data...</p>;
   }
 
+  // 9. Error state.
+  if (error) {
+    return (
+      <p role="alert">
+        Failed to load subject data: {error}
+      </p>
+    );
+  }
+
+  // 10. No subject selected.
   if (selectedIds.length === 0) {
     return (
       <div className="app-shell">
-        <Sidebar />
         <div className="main-shell">
+
           <Header
             subjects={subjects}
             selectedIds={selectedIds}
             onToggleSubject={toggleSubject}
           />
+
           <main className="dashboard-content">
-            <p>Select at least one participant from the header dropdown.</p>
+            <p>
+              Select at least one participant from the header dropdown.
+            </p>
           </main>
+
         </div>
       </div>
     );
   }
 
+  // 11. No trial available.
   if (!activeTrial || !gaitMetrics) {
-    return <p>No trial data is available for the selected participant.</p>;
+    return (
+      <div className="app-shell">
+        <div className="main-shell">
+
+          <Header
+            subjects={subjects}
+            selectedIds={selectedIds}
+            onToggleSubject={toggleSubject}
+          />
+
+          <main className="dashboard-content">
+            <p>
+              No trial data is available for the selected participant.
+            </p>
+          </main>
+
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="app-shell">
-      <Sidebar />
 
       <div className="main-shell">
+
         <Header
           subjects={subjects}
           selectedIds={selectedIds}
@@ -177,136 +299,255 @@ function Dashboard() {
         />
 
         <main className="dashboard-content">
-          {/* 1. Status cards */}
-          <section className="status-grid">
-            
 
-            <StatusCard
-              icon={Activity}
-              label="Current Subject"
-              value="Subject 01"
-              detail="Right Foot"
-              tone="blue"
-            />
+{/* DASHBOARD OVERVIEW */}
+<div className="dashboard-overview">
 
-            <StatusCard
-              icon={ClipboardList}
-              label="Last Trial"
-              value="trial_001_right.csv"
-              detail="Duration: 25.3 s"
-              tone="blue"
-            />
+  {/* LEFT: STATUS, ACTIONS AND GAIT METRICS */}
+  <div className="dashboard-main">
 
-            <StatusCard
-              icon={CheckCircle2}
-              label="Calibration Status"
-              value="Completed"
-              detail="May 15, 2025 10:12 AM"
-              tone="green"
-            />
-          </section>
+    {/* STATUS CARDS */}
+    <section className="status-grid">
 
-          {/* 2. Action cards */}
-          <section className="actions-grid">
-            <ActionCard
-              icon={Settings2}
-              label="Start Calibration"
-              description="5s standing + 20s walking"
-              tone="green"
-            />
+      <StatusCard
+        icon={Activity}
+        label="Current Subject"
+        value={
+          subjectInfo?.subject_name ||
+          selectedSubject?.name ||
+          selectedIds[0]
+        }
+        detail="Currently selected participant"
+        tone="blue"
+      />
 
-            <ActionCard
-              icon={Play}
-              label="Start Recording"
-              description="Record 25s trial"
-              tone="blue"
-            />
+      <StatusCard
+        icon={ClipboardList}
+        label="Last Subject"
+        value={lastSubject?.name || lastSubjectId || "None"}
+        detail={
+          lastSubjectId
+            ? "Previously selected participant"
+            : "No previous selection"
+        }
+        tone="blue"
+      />
 
-            <ActionCard
-              icon={Activity}
-              label="Analyze Trial"
-              description="Process gait parameters"
-              tone="purple"
-            />
+    </section>
 
-            <ActionCard
-              icon={FolderOpen}
-              label="View Results"
-              description="Open trial history"
-              tone="white"
-            />
-          </section>
+    {/* ACTION CARDS */}
+    <section className="actions-grid">
 
-          {/* 3. All 7 key gait metrics ABOVE the main graphs */}
-          <section className="metrics-analysis">
-            
-            <div className="gait-metrics-grid">
-              <GaitMetricCard
-                label="Heel Strikes"
-                value={gaitMetrics.heelStrikes}
-                detail="Detected heel contacts"
-                tone="blue"
-              />
+      {/* <ActionCard
+        icon={Settings2}
+        label="Start Calibration"
+        description="5s standing + 20s walking"
+        tone="green"
+      /> */}
 
-              <GaitMetricCard
-                label="Toe Offs"
-                value={gaitMetrics.toeOffs}
-                detail="Detected toe-off events"
-                tone="purple"
-              />
+      <ActionCard
+  icon={FileText}
+  label="Export Report"
+  description="Download gait analysis PDF"
+  tone="green"
+  onClick={exportReport}
+/>
 
-              <GaitMetricCard
-                label="Stride Cycles"
-                value={gaitMetrics.strideCycles}
-                detail={`${gaitMetrics.validCycles} valid cycles`}
-                tone="green"
-              />
+      <ActionCard
+        icon={Activity}
+        label="AI Analysis"
+        description="Perform your Analysis using AI"
+        tone="purple"
+        onClick={() =>
+          window.open(
+            "https://foot-imu-analysis-ihzfwmear-manans-projects-4c50ea69.vercel.app/",
+            "_blank",
+            "noopener,noreferrer"
+          )
+        }
+      />
 
-              <GaitMetricCard
-                label="Stride Time"
-                value={`${gaitMetrics.strideTime} s`}
-                detail={`± ${gaitMetrics.strideTimeStd} s`}
-                tone="orange"
-              />
+      {/* <ActionCard
+        icon={FolderOpen}
+        label="View Results"
+        description="Open trial history"
+        tone="white"
+      /> */}
 
-              <GaitMetricCard
-                label="Cadence"
-                value={gaitMetrics.cadence}
-                detail={`± ${gaitMetrics.cadenceStd} steps/min`}
-                tone="blue"
-              />
+    </section>
 
-              <GaitMetricCard
-                label="Stride Length"
-                value={`${gaitMetrics.strideLength} m`}
-                detail={`± ${gaitMetrics.strideLengthStd} m`}
-                tone="green"
-              />
+    {/* GAIT METRICS */}
+    <section className="metrics-analysis">
+      <div className="gait-metrics-grid">
 
-              <GaitMetricCard
-                label="Stride Height"
-                value={`${gaitMetrics.strideHeight} m`}
-                detail={`± ${gaitMetrics.strideHeightStd} m`}
-                tone="purple"
-              />
+        <GaitMetricCard
+          label="Heel Strikes"
+          value={gaitMetrics.heelStrikes}
+          detail="Detected contacts"
+          tone="blue"
+        />
+
+        <GaitMetricCard
+          label="Toe Offs"
+          value={gaitMetrics.toeOffs}
+          detail="Detected events"
+          tone="purple"
+        />
+
+        <GaitMetricCard
+          label="Stride Cycles"
+          value={gaitMetrics.strideCycles}
+          detail={`${gaitMetrics.validCycles} valid cycles`}
+          tone="green"
+        />
+
+        <GaitMetricCard
+          label="Stride Time"
+          value={`${gaitMetrics.strideTime} s`}
+          detail={`± ${gaitMetrics.strideTimeStd} s`}
+          tone="orange"
+        />
+
+        <GaitMetricCard
+          label="Cadence"
+          value={gaitMetrics.cadence}
+          detail="Steps/min"
+          tone="blue"
+        />
+
+        <GaitMetricCard
+          label="Stride Length"
+          value={`${gaitMetrics.strideLength} m`}
+          detail="Average length"
+          tone="green"
+        />
+
+        <GaitMetricCard
+          label="Stride Height"
+          value={`${gaitMetrics.strideHeight} m`}
+          detail="Average height"
+          tone="purple"
+        />
+
+      </div>
+    </section>
+
+  </div>
+
+  {/* RIGHT: SUBJECT PROFILE */}
+  <aside className="profile-sidebar">
+
+    <div className="compact-profile">
+
+      <div className="compact-profile-header">
+        <div>
+          <h3>Subject Profile</h3>
+          <span>Participant information</span>
+        </div>
+        <Activity size={19} />
+      </div>
+
+      {subjectInfo ? (
+        <>
+          <div className="compact-subject-name">
+            {subjectInfo.subject_name || "Unknown Subject"}
+          </div>
+
+          <div className="compact-profile-stats">
+
+            <div>
+              <span>Height</span>
+              <strong>
+                {subjectInfo.height_cm ?? "—"} <small>cm</small>
+              </strong>
             </div>
 
-          </section>
+            <div>
+              <span>Weight</span>
+              <strong>
+                {subjectInfo.weight_kg ?? "—"} <small>kg</small>
+              </strong>
+            </div>
 
-          {/* 4. Main sensor and event-detection graphs */}
+            <div>
+              <span>BMI</span>
+              <strong>{bmi ?? "—"}</strong>
+            </div>
+
+          </div>
+
+          <div className="compact-segments">
+            <span>SEGMENT LENGTHS</span>
+
+            <div>
+              <label>Thigh</label>
+              <strong>
+                {subjectInfo.segment_length_cm?.thigh ?? "—"} cm
+              </strong>
+            </div>
+
+            <div>
+              <label>Shank</label>
+              <strong>
+                {subjectInfo.segment_length_cm?.shank ?? "—"} cm
+              </strong>
+            </div>
+
+            <div>
+              <label>Foot</label>
+              <strong>
+                {subjectInfo.segment_length_cm?.foot ?? "—"} cm
+              </strong>
+            </div>
+
+          </div>
+        </>
+      ) : (
+        <p className="compact-profile-empty">
+          Subject information unavailable.
+        </p>
+      )}
+
+    </div>
+  </aside>
+
+</div>
+
+          {/* 5. SENSOR AND EVENT DETECTION GRAPHS */}
+
           <section className="analysis-top-grid">
+
             <PrimaryChart data={sensorData} />
+
             <EventDetectionChart data={eventData} />
+
           </section>
 
-          {/* 5. Detailed stride analysis */}
+
+          {/* 6. DETAILED STRIDE ANALYSIS */}
+
           <section className="lower-analysis-grid">
-            <StrideChart data={strideData} type="height" />
-            <StrideChart data={strideData} type="length" />
-            <FootTrajectory data={mockTrajectory} />
+
+            <StrideChart
+              data={strideData}
+              type="height"
+            />
+
+            <StrideChart
+              data={strideData}
+              type="length"
+            />
+
+            <FootTrajectory
+              data={mockTrajectory}
+            />
+
           </section>
+
         </main>
+
       </div>
+
     </div>
   );
 }

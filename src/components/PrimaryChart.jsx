@@ -13,7 +13,7 @@ function PrimaryChart({ data }) {
     <div className="panel live-sensor-panel">
       <div className="panel-header">
         <div>
-          <h2>Live Sensor Data</h2>
+          <h2>Sensor Data Visualization</h2>
           <p><span className="streaming-dot" /> Streaming...</p>
         </div>
         <div className="chart-meta">Packet Rate: 100 Hz &nbsp;|&nbsp; Samples: 12,540</div>

@@ -128,14 +128,7 @@ function Header({
           </span>
         </div>
 
-        <button
-          type="button"
-          className="top-icon-button"
-          aria-label="Settings"
         
-        >
-          <Settings size={18} />
-        </button>
       </div>
     </header>
   );
