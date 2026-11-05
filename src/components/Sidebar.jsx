@@ -1,4 +1,3 @@
-
 import {
   Activity,
   BarChart3,
@@ -14,7 +13,7 @@ const items = [
   { label: "Dashboard", icon: LayoutDashboard, active: true },
   { label: "Calibration", icon: SlidersHorizontal },
   { label: "Record Trial", icon: Activity },
-  { label: "Gait Analysis", icon: BarChart3 },
+  { label: "AI Analysis", icon: BarChart3 },
   { label: "Trial History", icon: History },
   { label: "Settings", icon: Settings },
   { label: "Help", icon: CircleHelp },
@@ -29,7 +28,7 @@ function Sidebar() {
         </div>
         <div>
           <div className="sidebar-title">FOOT IMU</div>
-          <div className="sidebar-subtitle">Gait Analysis</div>
+          <div className="sidebar-subtitle">AI Analysis</div>
         </div>
       </div>
 
